@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  chromadb:
+    image: chromadb/chroma
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data/chroma-data:/chroma/chroma
+
+  embeddings:
+    build:
+      context: .
+      dockerfile: src/embeddings/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - chromadb
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./src/embeddings/:/opt/app-root/src/embeddings:rw
+      - ./models/:/opt/app-root/models:rw
+
+
+  antiplagiat:
+    build:
+      context: .
+      dockerfile: src/antiplagiat/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - embeddings
+    ports:
+      - "8085:8085"
+    volumes:
+      - ./src/antiplagiat/:/opt/app-root/src/antiplagiat:rw
+      - ./src/embeddings/:/opt/app-root/src/embeddings:rw
+      - ./src/file_processing/:/opt/app-root/src/file_processing:rw
+      - ./models/:/opt/app-root/models:rw
+      - ./datasets/:/opt/app-root/datasets/:rw
+volumes:
+  chroma-data:
+    driver: local
