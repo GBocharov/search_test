@@ -2,6 +2,7 @@ from typing import List, Union
 
 from fastapi import APIRouter
 
+from antiplagiat.api.schema import StringInsertRequest
 from antiplagiat.domain.strategy import strategy
 
 antiplagiat_router = APIRouter(
@@ -11,11 +12,18 @@ antiplagiat_router = APIRouter(
 
 
 @antiplagiat_router.post(
-    "/insert_into_db",
+    "/insert_strings",
 )
-async def fill_db(inputs: Union[str, List[str]]):
-    strategy.add(inputs)
+async def insert_strings(inputs: StringInsertRequest):
+    strategy.add(inputs.items)
     return strategy.get(n_results=1)
+
+
+@antiplagiat_router.post(
+    "/insert_by_ids",
+)
+async def insert_by_ids(inputs: StringInsertRequest):
+    return "It's not time yet"
 
 
 @antiplagiat_router.post(
